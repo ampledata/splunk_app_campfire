@@ -38,6 +38,7 @@ Saved Search Alert Paste
 
 .. image:: https://raw.github.com/ampledata/splunk_app_campfire/develop/docs/splunk_saved_search_paste.png
 
+.. image:: https://raw.github.com/ampledata/splunk_app_campfire/develop/docs/campfire_alert_paste.png
 
 Testing
 =======
