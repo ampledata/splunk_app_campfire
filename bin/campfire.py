@@ -15,9 +15,13 @@ try:
 except ImportError:
     import simplejson as json
 import sys
+import time
 import traceback
 import urlparse
 import os
+
+
+TIME_FORMAT = '%b %d %H:%M:%S'
 
 
 class CampfireError(StandardError):
@@ -152,19 +156,40 @@ class Campfire(object):
                     data=room, connector=self._connector)
 
 
-def extract_events(events_file):
-    """Extracts event data from Splunk CSV file.
+def extract_results(results_file):
+    """Extracts results data from Splunk CSV file.
 
-    @param events_file: Path to GZIP compressed CSV file.
-    @type events_file: str
+    @param results_file: Path to GZIP compressed CSV file.
+    @type results_file: str
 
-    @return: Events from CSV file.
+    @return: results from CSV file.
     @rtype: list
     """
-    events = []
-    if events_file is not None and os.path.exists(events_file):
-        events = csv.DictReader(gzip.open(events_file))
-    return events
+    results = []
+    if results_file is not None and os.path.exists(results_file):
+        results = csv.DictReader(gzip.open(results_file))
+    return results
+
+
+def extract_fields(result):
+    """Extracts results from search results.
+
+    @return: Paste-able search results.
+    @rtype: list
+    """
+    if '_raw' in result:
+        return result['_raw']
+    else:
+        if '_time' in result:
+            result['_time'] = time.strftime(
+                TIME_FORMAT, time.localtime(float(result['_time'])))
+        return '\t'.join([result[k] for k in result.keys()])
+
+
+def paste_results(room, results):
+    """Pastes search results to room."""
+    paste = '\n'.join([extract_fields(result) for result in list(results)])
+    room.paste(paste)
 
 
 def get_api_credentials(config_file):
@@ -192,8 +217,7 @@ def search_command(room):
 
     try:
         results, _, _ = splunk.Intersplunk.getOrganizedResults()
-        for result in results:
-            room.paste(result['_raw'])
+        paste_results(room, results)
     # TODO(gba) Catch less general exception.
     except Exception:
         stack = traceback.format_exc()
@@ -207,9 +231,8 @@ def search_command(room):
 def alert_command(room):
     """Invokes Campfire as a Saved-Search Alert Command."""
     room.speak(os.environ.get('SPLUNK_ARG_5'))
-    events = extract_events(os.environ.get('SPLUNK_ARG_8'))
-    paste = '\n'.join([event['_raw'] for event in list(events)])
-    room.paste(paste)
+    results = extract_results(os.environ.get('SPLUNK_ARG_8'))
+    paste_results(room, results)
 
 
 def get_config_file():
@@ -232,7 +255,11 @@ def get_config_file():
 
 
 def join_room():
-    """Sets up Campfire API Instance."""
+    """Sets up Campfire API Instance.
+
+    @return: Campfire Room Instance
+    @rtype `Campfire.room`
+    """
     subdomain, auth_token, room_name = get_api_credentials(get_config_file())
     campfire = Campfire(subdomain, auth_token)
     room = campfire.find_room_by_name(room_name)
