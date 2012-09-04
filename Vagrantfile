@@ -10,7 +10,13 @@
 
 
 Vagrant::Config.run do |config|
-  config.vm.box = 'base'
-  config.vm.forward_port 8000, 4170
-  config.vm.forward_port 8089, 4179
+  config.vm.box = 'stormbase_100'
+  config.vm.box_url = 'https://dl.dropbox.com/u/4036736/stormbase_100.box'
+  config.vm.host_name = 'happen'
+  config.vm.forward_port 8000, 5170
+  config.vm.forward_port 8089, 5179
+  config.vm.provision :chef_solo do |chef|
+    chef.cookbooks_path = 'cookbooks'
+    chef.add_recipe('splunk')
+  end
 end
