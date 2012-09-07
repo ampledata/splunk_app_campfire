@@ -203,9 +203,9 @@ def get_api_credentials(config_file):
         config = ConfigParser.ConfigParser()
         config.read(config_file)
         api_credentials = (
-            config.get('api', 'subdomain'),
-            config.get('api', 'auth_token'),
-            config.get('api', 'room_name')
+            config.get('campfire_api', 'subdomain'),
+            config.get('campfire_api', 'auth_token'),
+            config.get('campfire_api', 'room_name')
         )
     return api_credentials
 

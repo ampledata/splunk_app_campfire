@@ -40,7 +40,7 @@ class ConfigCampfireApp(splunk.admin.MConfigHandler):
         if self.callerArgs.data['room_name'][0] in [None, '']:
             self.callerArgs.data['room_name'][0] = ''
 
-        self.writeConf('campfire', 'api', self.callerArgs.data)
+        self.writeConf('campfire', 'campfire_api', self.callerArgs.data)
         install_campfire_py(os.environ.get('SPLUNK_HOME'))
 
 
